@@ -2,17 +2,23 @@ package ru.skillbox.socialnetwork.controller.admin;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
-import ru.skillbox.socialnetwork.data.dto.RegisterRequest;
+import ru.skillbox.socialnetwork.data.dto.admin.PersonStatisticResponse;
+import ru.skillbox.socialnetwork.data.dto.admin.StatisticRequest;
+import ru.skillbox.socialnetwork.data.dto.admin.PostStatisticResponse;
+import ru.skillbox.socialnetwork.service.admin.AdminService;
 
 @RestController
 @Api(tags = "Статистика в админ панели")
+@RequiredArgsConstructor
 @Slf4j
 @PreAuthorize("hasAuthority('user:administration')")
 public class StatisticsController {
+
+    private final AdminService adminService;
 
     @GetMapping("/api/v1/admin/getCommonStat")
     @ApiOperation(value = "Получить общую статистику")
@@ -20,4 +26,13 @@ public class StatisticsController {
     public String getAll() {
         return "CommonStat";
     }
+
+    @GetMapping("/api/v1/admin/stats/post")
+    @ApiOperation(value = "Получить статистику публикаций")
+    @CrossOrigin(allowCredentials = "true", origins = "http://127.0.0.1:8080")
+    public PostStatisticResponse getPostStatistic(@RequestBody StatisticRequest request){
+        return adminService.getPostStatistic(request);
+    }
+
+    
 }
