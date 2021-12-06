@@ -128,5 +128,68 @@ class AdminServiceTest {
         assertEquals(50.0, response.getPostsByHour().get(2));
     }
 
+    @Test
+    void getPersonStatistic_With_graphPeriod_years(){
+        Mockito.when(personRepository.findAllByRegTimeBetweenDates(Mockito.any(), Mockito.any())).thenReturn(List.of(personFirst, personSecond));
+        Mockito.when(personRepository.count()).thenReturn(2L);
+        StatisticRequest request = StatisticRequest.builder()
+                .dateFromGraph("2010-01-01T01:00:19 05:00")
+                .dateToGraph("2021-01-01T01:00:19 05:00")
+                .graphPeriod("years")
+                .build();
 
+        PersonStatisticResponse response = adminService.getPersonStatistic(request);
+        assertEquals(2, response.getTotalPersonCount());
+        assertEquals(2, response.getFoundPersonCount());
+        assertEquals(12, response.getPersonGraphData().size());
+        assertEquals(6, response.getAgeDistribution().size());
+        assertEquals(50.0, response.getAgeDistribution().get("24-30"));
+        assertEquals(50.0, response.getAgeDistribution().get("19-23"));
+//        assertEquals(2, response.getSexDistribution().size());
+//        assertEquals(50, response.getSexDistribution().get("мужчины"));
+//        assertEquals(50, response.getSexDistribution().get("женщины"));
+    }
+    @Test
+    void getPersonStatistic_With_graphPeriod_months(){
+        Mockito.when(personRepository.findAllByRegTimeBetweenDates(Mockito.any(), Mockito.any())).thenReturn(List.of(personFirst));
+        Mockito.when(personRepository.count()).thenReturn(2L);
+        StatisticRequest request = StatisticRequest.builder()
+                .dateFromGraph("2020-01-01T01:00:19 05:00")
+                .dateToGraph("2021-01-01T01:00:19 05:00")
+                .graphPeriod("months")
+                .build();
+
+        PersonStatisticResponse response = adminService.getPersonStatistic(request);
+        assertEquals(2, response.getTotalPersonCount());
+        assertEquals(1, response.getFoundPersonCount());
+        assertEquals(12, response.getPersonGraphData().size());
+        assertEquals(6, response.getAgeDistribution().size());
+        assertEquals(100.0, response.getAgeDistribution().get("24-30"));
+        assertEquals(0.0, response.getAgeDistribution().get("19-23"));
+//        assertEquals(2, response.getSexDistribution().size());
+//        assertEquals(50, response.getSexDistribution().get("мужчины"));
+//        assertEquals(50, response.getSexDistribution().get("женщины"));
+    }
+
+    @Test
+    void getPersonStatistic_With_graphPeriod_days(){
+        Mockito.when(personRepository.findAllByRegTimeBetweenDates(Mockito.any(), Mockito.any())).thenReturn(List.of(personFirst));
+        Mockito.when(personRepository.count()).thenReturn(2L);
+        StatisticRequest request = StatisticRequest.builder()
+                .dateFromGraph("2020-12-28T01:00:19 05:00")
+                .dateToGraph("2021-01-01T01:00:19 05:00")
+                .graphPeriod("days")
+                .build();
+
+        PersonStatisticResponse response = adminService.getPersonStatistic(request);
+        assertEquals(2, response.getTotalPersonCount());
+        assertEquals(1, response.getFoundPersonCount());
+        assertEquals(4, response.getPersonGraphData().size());
+        assertEquals(6, response.getAgeDistribution().size());
+        assertEquals(100.0, response.getAgeDistribution().get("24-30"));
+        assertEquals(0.0, response.getAgeDistribution().get("19-23"));
+//        assertEquals(2, response.getSexDistribution().size());
+//        assertEquals(50, response.getSexDistribution().get("мужчины"));
+//        assertEquals(50, response.getSexDistribution().get("женщины"));
+    }
 }

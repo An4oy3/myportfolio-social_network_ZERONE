@@ -34,5 +34,10 @@ public class StatisticsController {
         return adminService.getPostStatistic(request);
     }
 
-    
+    @GetMapping("/api/v1/admin/stats/person")
+    @ApiOperation(value = "Получить статистику пользователей")
+    @CrossOrigin(allowCredentials = "true", origins = "http://127.0.0.1:8080")
+    public PersonStatisticResponse getPersonStatistic(@RequestBody StatisticRequest request){
+        return adminService.getPersonStatistic(request);
+    }
 }
