@@ -11,7 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.skillbox.socialnetwork.data.dto.admin.PersonStatisticResponse;
 import ru.skillbox.socialnetwork.data.dto.admin.StatisticRequest;
-import ru.skillbox.socialnetwork.data.dto.admin.PostStatisticResponse;
+import ru.skillbox.socialnetwork.data.dto.admin.StatisticResponse;
 import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.entity.Post;
 import ru.skillbox.socialnetwork.data.repository.PersonRepo;
@@ -73,13 +73,13 @@ class AdminServiceTest {
                 .diagramPeriod("allTime")
                 .build();
 
-        PostStatisticResponse response = adminService.getPostStatistic(request);
-        assertEquals(2, response.getTotalPostCount());
-        assertEquals(2, response.getFoundPostCount());
+        StatisticResponse response = adminService.getPostStatistic(request);
+        assertEquals(2, response.getTotalDataCount());
+        assertEquals(2, response.getFoundDataCount());
         assertEquals(11, response.getGraphData().size());
-        assertEquals(24, response.getPostsByHour().size());
-        assertEquals(50.0, response.getPostsByHour().get(1));
-        assertEquals(50.0, response.getPostsByHour().get(2));
+        assertEquals(24, response.getDataByHour().size());
+        assertEquals(50.0, response.getDataByHour().get(1));
+        assertEquals(50.0, response.getDataByHour().get(2));
     }
 
     @Test
@@ -96,13 +96,13 @@ class AdminServiceTest {
                 .diagramPeriod("allTime")
                 .build();
 
-        PostStatisticResponse response = adminService.getPostStatistic(request);
-        assertEquals(2, response.getTotalPostCount());
-        assertEquals(1, response.getFoundPostCount());
+        StatisticResponse response = adminService.getPostStatistic(request);
+        assertEquals(2, response.getTotalDataCount());
+        assertEquals(1, response.getFoundDataCount());
         assertEquals(12, response.getGraphData().size());
-        assertEquals(24, response.getPostsByHour().size());
-        assertEquals(50.0, response.getPostsByHour().get(1));
-        assertEquals(50.0, response.getPostsByHour().get(2));
+        assertEquals(24, response.getDataByHour().size());
+        assertEquals(50.0, response.getDataByHour().get(1));
+        assertEquals(50.0, response.getDataByHour().get(2));
     }
 
     @Test
@@ -119,13 +119,13 @@ class AdminServiceTest {
                 .diagramPeriod("allTime")
                 .build();
 
-        PostStatisticResponse response = adminService.getPostStatistic(request);
-        assertEquals(2, response.getTotalPostCount());
-        assertEquals(1, response.getFoundPostCount());
+        StatisticResponse response = adminService.getPostStatistic(request);
+        assertEquals(2, response.getTotalDataCount());
+        assertEquals(1, response.getFoundDataCount());
         assertEquals(3, response.getGraphData().size());
-        assertEquals(24, response.getPostsByHour().size());
-        assertEquals(50.0, response.getPostsByHour().get(1));
-        assertEquals(50.0, response.getPostsByHour().get(2));
+        assertEquals(24, response.getDataByHour().size());
+        assertEquals(50.0, response.getDataByHour().get(1));
+        assertEquals(50.0, response.getDataByHour().get(2));
     }
 
     @Test
