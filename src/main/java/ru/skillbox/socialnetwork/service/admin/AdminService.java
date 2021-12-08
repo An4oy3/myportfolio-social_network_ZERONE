@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.data.dto.admin.PersonStatisticResponse;
 import ru.skillbox.socialnetwork.data.dto.admin.StatisticRequest;
-import ru.skillbox.socialnetwork.data.dto.admin.PostStatisticResponse;
+import ru.skillbox.socialnetwork.data.dto.admin.StatisticResponse;
 import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.entity.Post;
+import ru.skillbox.socialnetwork.data.entity.PostComment;
 import ru.skillbox.socialnetwork.data.repository.PersonRepo;
+import ru.skillbox.socialnetwork.data.repository.PostCommentsRepository;
 import ru.skillbox.socialnetwork.data.repository.PostRepository;
 
 import java.sql.Timestamp;
@@ -26,12 +28,13 @@ public class AdminService {
 
     private final PostRepository postRepository;
     private final PersonRepo personRepository;
+    private final PostCommentsRepository postCommentsRepository;
 
-    public PostStatisticResponse getPostStatistic(StatisticRequest request) {
+    public StatisticResponse getPostStatistic(StatisticRequest request) {
         LocalDateTime from = LocalDateTime.parse(request.getDateFromGraph().substring(0, request.getDateFromGraph().indexOf(" ")));
         LocalDateTime to = LocalDateTime.parse(request.getDateToGraph().substring(0, request.getDateToGraph().indexOf(" ")));
-        List<Post> totalPosts = postRepository.findAllByTimeBetweenDates(from, to);
-        Map<Timestamp, Long> posts = new TreeMap<>();
+        List<Post> totalPostsBetweenDates = postRepository.findAllByTimeBetweenDates(from, to);
+        Map<Timestamp, Long> graphData = new TreeMap<>();
         Map<Integer, Double> postsByHour = new HashMap<>();
 
         List<Post> postsForDiagram = request.getDiagramPeriod().equals("allTime") ? postRepository.findAll() :
@@ -49,64 +52,111 @@ public class AdminService {
         if(request.getGraphPeriod().equals("years")){
             while (from.getYear() <= to.getYear()){
                 int finalYear = from.getYear();
-                long count = totalPosts.stream().filter(post -> post.getTime().getYear() == finalYear).count();
-                posts.put(Timestamp.valueOf(from), count);
+                long count = totalPostsBetweenDates.stream().filter(post -> post.getTime().getYear() == finalYear).count();
+                graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusYears(1);
             }
-            return postStatisticResponseBuilder(posts, postsByHour, totalPosts.size());
+            return statisticResponseBuild(graphData, postsByHour, totalPostsBetweenDates.size(), personRepository.count());
         }
         if (request.getGraphPeriod().equals("months")){
             while (from.isBefore(to)){
                 int finalMonth = from.getMonthValue();
-                long count = totalPosts.stream().filter(post -> post.getTime().getMonthValue() == finalMonth).count();
-                posts.put(Timestamp.valueOf(from), count);
+                long count = totalPostsBetweenDates.stream().filter(post -> post.getTime().getMonthValue() == finalMonth).count();
+                graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusMonths(1);
             }
-            return postStatisticResponseBuilder(posts, postsByHour, totalPosts.size());
+            return statisticResponseBuild(graphData, postsByHour, totalPostsBetweenDates.size(), personRepository.count());
         }
 
             while (from.isBefore(to)){
                 int finalDay = from.getDayOfMonth();
-                long count = totalPosts.stream().filter(post -> post.getTime().getDayOfMonth() == finalDay).count();
-                posts.put(Timestamp.valueOf(from), count);
+                long count = totalPostsBetweenDates.stream().filter(post -> post.getTime().getDayOfMonth() == finalDay).count();
+                graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusDays(1);
             }
-            return postStatisticResponseBuilder(posts, postsByHour, totalPosts.size());
+            return statisticResponseBuild(graphData, postsByHour, totalPostsBetweenDates.size(), personRepository.count());
     }
 
     public PersonStatisticResponse getPersonStatistic(StatisticRequest request) {
         LocalDateTime from = LocalDateTime.parse(request.getDateFromGraph().substring(0, request.getDateFromGraph().indexOf(" ")));
         LocalDateTime to = LocalDateTime.parse(request.getDateToGraph().substring(0, request.getDateToGraph().indexOf(" ")));
 
-        List<Person> totalPersons = personRepository.findAllByRegTimeBetweenDates(from, to);
-        Map<Timestamp, Long> persons = new TreeMap<>();
-        Map<String, Double> ageDistribution = ageDistributionMapBuild(totalPersons);
+        List<Person> totalPersonsBetweenDates = personRepository.findAllByRegTimeBetweenDates(from, to);
+        Map<Timestamp, Long> graphData = new TreeMap<>();
+        Map<String, Double> ageDistribution = ageDistributionMapBuild(totalPersonsBetweenDates);
         Map<String, Integer> sexDistribution = new HashMap<>();
 
         if(request.getGraphPeriod().equals("years")){
             while (from.getYear() <= to.getYear()){
                 int finalYear = from.getYear();
-                long count = totalPersons.stream().filter(person -> person.getRegTime().getYear() == finalYear).count();
-                persons.put(Timestamp.valueOf(from), count);
+                long count = totalPersonsBetweenDates.stream().filter(person -> person.getRegTime().getYear() == finalYear).count();
+                graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusYears(1);
             }
-            return personStatisticResponseBuilder(persons, ageDistribution, sexDistribution, totalPersons.size());
+            return personStatisticResponseBuild(graphData, ageDistribution, sexDistribution, totalPersonsBetweenDates.size());
         }else if(request.getGraphPeriod().equals("months")){
             while (from.isBefore(to)){
                 int finalMonth = from.getMonthValue();
-                long count = totalPersons.stream().filter(person -> person.getRegTime().getMonthValue() == finalMonth).count();
-                persons.put(Timestamp.valueOf(from), count);
+                long count = totalPersonsBetweenDates.stream().filter(person -> person.getRegTime().getMonthValue() == finalMonth).count();
+                graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusMonths(1);
             }
+            return personStatisticResponseBuild(graphData, ageDistribution, sexDistribution, totalPersonsBetweenDates.size());
         }
         while (from.isBefore(to)){
             int finalDay = from.getDayOfMonth();
-            long count = totalPersons.stream().filter(person -> person.getRegTime().getDayOfMonth() == finalDay).count();
-            persons.put(Timestamp.valueOf(from), count);
+            long count = totalPersonsBetweenDates.stream().filter(person -> person.getRegTime().getDayOfMonth() == finalDay).count();
+            graphData.put(Timestamp.valueOf(from), count);
             from = from.plusDays(1L);
         }
-        return personStatisticResponseBuilder(persons, ageDistribution, sexDistribution, totalPersons.size());
+        return personStatisticResponseBuild(graphData, ageDistribution, sexDistribution, totalPersonsBetweenDates.size());
     }
+
+    public StatisticResponse getCommentStatistic(StatisticRequest request) {
+        LocalDateTime from = LocalDateTime.parse(request.getDateFromGraph().substring(0, request.getDateFromGraph().indexOf(" ")));
+        LocalDateTime to = LocalDateTime.parse(request.getDateToGraph().substring(0, request.getDateToGraph().indexOf(" ")));
+        List<PostComment> totalPostCommentsBetweenDates = postCommentsRepository.findAllByTimeBetweenDates(from, to);
+        Map<Timestamp, Long> graphData = new TreeMap<>();
+        Map<Integer, Double> postCommentsByHour = new HashMap<>();
+
+        List<PostComment> postCommentsForDiagram = request.getDiagramPeriod().equals("allTime") ? postCommentsRepository.findAll() :
+                postCommentsRepository.findAllByTimeBetweenDates(
+                        LocalDateTime.parse(request.getDateFromDiagram().substring(0, request.getDateFromDiagram().indexOf(" "))),
+                        LocalDateTime.parse(request.getDateToDiagram().substring(0, request.getDateToDiagram().indexOf(" ")))
+                );
+
+        for (int hour = 0; hour < 24; hour++){
+            int finalHour = hour;
+            long count = postCommentsForDiagram.stream().filter(postComment -> postComment.getTime().getHour() == finalHour).count();
+            postCommentsByHour.put(hour, (Math.floor(((double) count/postCommentsForDiagram.size() * 100) * 1e2 / 1e2)));
+        }
+
+        if(request.getGraphPeriod().equals("years")){
+            while (from.getYear() <= to.getYear()){
+                int finalYear = from.getYear();
+                long count = totalPostCommentsBetweenDates.stream().filter(postComment -> postComment.getTime().getYear() == finalYear).count();
+                graphData.put(Timestamp.valueOf(from), count);
+                from = from.plusYears(1);
+            }
+            return statisticResponseBuild(graphData, postCommentsByHour, totalPostCommentsBetweenDates.size(), postCommentsRepository.count());
+        }else if(request.getGraphPeriod().equals("months")){
+            while (from.isBefore(to)){
+                int finalMonth = from.getMonthValue();
+                long count = totalPostCommentsBetweenDates.stream().filter(postComment -> postComment.getTime().getMonthValue() == finalMonth).count();
+                graphData.put(Timestamp.valueOf(from), count);
+                from = from.plusMonths(1);
+            }
+            return statisticResponseBuild(graphData, postCommentsByHour, totalPostCommentsBetweenDates.size(), postCommentsRepository.count());
+        }
+            while (from.isBefore(to)){
+                int finalDay = from.getDayOfMonth();
+                long count = totalPostCommentsBetweenDates.stream().filter(postComment -> postComment.getTime().getDayOfMonth() == finalDay).count();
+                graphData.put(Timestamp.valueOf(from), count);
+                from.plusDays(1);
+            }
+        return statisticResponseBuild(graphData, postCommentsByHour, totalPostCommentsBetweenDates.size(), postCommentsRepository.count());
+    }
+
 
 
     private Map<String, Double> ageDistributionMapBuild(List<Person> totalPersons){
@@ -137,10 +187,10 @@ public class AdminService {
         return ageDistribution;
     }
 
-    private PersonStatisticResponse personStatisticResponseBuilder(Map<Timestamp, Long> persons,
-                                                                   Map<String, Double> ageDistribution,
-                                                                   Map<String, Integer> sexDistribution,
-                                                                   int foundPersonCount){
+    private PersonStatisticResponse personStatisticResponseBuild(Map<Timestamp, Long> persons,
+                                                                 Map<String, Double> ageDistribution,
+                                                                 Map<String, Integer> sexDistribution,
+                                                                 int foundPersonCount){
         return PersonStatisticResponse.builder().error("string")
                 .timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
                 .totalPersonCount(personRepository.count())
@@ -154,14 +204,16 @@ public class AdminService {
 
 
 
-    private PostStatisticResponse postStatisticResponseBuilder(Map<Timestamp, Long> posts, Map<Integer, Double> postsByHour, int foundPostCount){
-        return PostStatisticResponse.builder().error("string")
+    private StatisticResponse statisticResponseBuild(Map<Timestamp, Long> graphData,
+                                                     Map<Integer, Double> dataByHour,
+                                                     int foundDataCount,
+                                                     long totalDataCount){
+        return StatisticResponse.builder().error("string")
                 .timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
-                .totalPostCount(postRepository.count())
-                .foundPostCount(foundPostCount)
-                .GraphData(posts)
-                .postsByHour(postsByHour)
+                .totalDataCount(totalDataCount)
+                .foundDataCount(foundDataCount)
+                .GraphData(graphData)
+                .dataByHour(dataByHour)
                 .build();
     }
-
 }

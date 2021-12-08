@@ -12,11 +12,11 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PostStatisticResponse {
+public class StatisticResponse {
     private String error;
     private long timestamp;
-    private long totalPostCount;
-    private long foundPostCount;
+    private long totalDataCount;
+    private long foundDataCount;
     private Map<Timestamp, Long> GraphData;
-    private Map<Integer, Double> postsByHour;
+    private Map<Integer, Double> dataByHour;
 }
