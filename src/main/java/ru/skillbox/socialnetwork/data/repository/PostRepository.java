@@ -34,7 +34,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                      @Param("tags") Collection<Tag> tags,
                                      Pageable pageable);
 
-    @Query(value = "select p FROM Post p WHERE p.time > :date_from and p.time < :date_to")
+    @Query(value = "select p FROM Post p WHERE p.time >= :date_from and p.time <= :date_to")
     List<Post> findAllByTimeBetweenDates(@Param("date_from") LocalDateTime dateFrom,
                                          @Param("date_to") LocalDateTime dateTo);
 

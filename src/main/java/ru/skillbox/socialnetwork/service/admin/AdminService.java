@@ -8,8 +8,10 @@ import ru.skillbox.socialnetwork.data.dto.admin.StatisticResponse;
 import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.entity.Post;
 import ru.skillbox.socialnetwork.data.entity.PostComment;
+import ru.skillbox.socialnetwork.data.entity.PostLike;
 import ru.skillbox.socialnetwork.data.repository.PersonRepo;
 import ru.skillbox.socialnetwork.data.repository.PostCommentsRepository;
+import ru.skillbox.socialnetwork.data.repository.PostLikesRepository;
 import ru.skillbox.socialnetwork.data.repository.PostRepository;
 
 import java.sql.Timestamp;
@@ -29,6 +31,7 @@ public class AdminService {
     private final PostRepository postRepository;
     private final PersonRepo personRepository;
     private final PostCommentsRepository postCommentsRepository;
+    private final PostLikesRepository postLikesRepository;
 
     public StatisticResponse getPostStatistic(StatisticRequest request) {
         LocalDateTime from = LocalDateTime.parse(request.getDateFromGraph().substring(0, request.getDateFromGraph().indexOf(" ")));
@@ -56,25 +59,22 @@ public class AdminService {
                 graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusYears(1);
             }
-            return statisticResponseBuild(graphData, postsByHour, totalPostsBetweenDates.size(), personRepository.count());
-        }
-        if (request.getGraphPeriod().equals("months")){
+        } else if (request.getGraphPeriod().equals("months")){
             while (from.isBefore(to)){
                 int finalMonth = from.getMonthValue();
                 long count = totalPostsBetweenDates.stream().filter(post -> post.getTime().getMonthValue() == finalMonth).count();
                 graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusMonths(1);
             }
-            return statisticResponseBuild(graphData, postsByHour, totalPostsBetweenDates.size(), personRepository.count());
-        }
-
-            while (from.isBefore(to)){
+        } else {
+            while (from.isBefore(to)) {
                 int finalDay = from.getDayOfMonth();
                 long count = totalPostsBetweenDates.stream().filter(post -> post.getTime().getDayOfMonth() == finalDay).count();
                 graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusDays(1);
             }
-            return statisticResponseBuild(graphData, postsByHour, totalPostsBetweenDates.size(), personRepository.count());
+        }
+        return statisticResponseBuild(graphData, postsByHour, totalPostsBetweenDates.size(), postRepository.count());
     }
 
     public PersonStatisticResponse getPersonStatistic(StatisticRequest request) {
@@ -93,21 +93,20 @@ public class AdminService {
                 graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusYears(1);
             }
-            return personStatisticResponseBuild(graphData, ageDistribution, sexDistribution, totalPersonsBetweenDates.size());
-        }else if(request.getGraphPeriod().equals("months")){
+        } else if(request.getGraphPeriod().equals("months")){
             while (from.isBefore(to)){
                 int finalMonth = from.getMonthValue();
                 long count = totalPersonsBetweenDates.stream().filter(person -> person.getRegTime().getMonthValue() == finalMonth).count();
                 graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusMonths(1);
             }
-            return personStatisticResponseBuild(graphData, ageDistribution, sexDistribution, totalPersonsBetweenDates.size());
-        }
-        while (from.isBefore(to)){
-            int finalDay = from.getDayOfMonth();
-            long count = totalPersonsBetweenDates.stream().filter(person -> person.getRegTime().getDayOfMonth() == finalDay).count();
-            graphData.put(Timestamp.valueOf(from), count);
-            from = from.plusDays(1L);
+        } else {
+            while (from.isBefore(to)) {
+                int finalDay = from.getDayOfMonth();
+                long count = totalPersonsBetweenDates.stream().filter(person -> person.getRegTime().getDayOfMonth() == finalDay).count();
+                graphData.put(Timestamp.valueOf(from), count);
+                from = from.plusDays(1L);
+            }
         }
         return personStatisticResponseBuild(graphData, ageDistribution, sexDistribution, totalPersonsBetweenDates.size());
     }
@@ -138,23 +137,66 @@ public class AdminService {
                 graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusYears(1);
             }
-            return statisticResponseBuild(graphData, postCommentsByHour, totalPostCommentsBetweenDates.size(), postCommentsRepository.count());
-        }else if(request.getGraphPeriod().equals("months")){
+        } else if(request.getGraphPeriod().equals("months")){
             while (from.isBefore(to)){
                 int finalMonth = from.getMonthValue();
                 long count = totalPostCommentsBetweenDates.stream().filter(postComment -> postComment.getTime().getMonthValue() == finalMonth).count();
                 graphData.put(Timestamp.valueOf(from), count);
                 from = from.plusMonths(1);
             }
-            return statisticResponseBuild(graphData, postCommentsByHour, totalPostCommentsBetweenDates.size(), postCommentsRepository.count());
-        }
-            while (from.isBefore(to)){
+        } else {
+            while (from.isBefore(to)) {
                 int finalDay = from.getDayOfMonth();
                 long count = totalPostCommentsBetweenDates.stream().filter(postComment -> postComment.getTime().getDayOfMonth() == finalDay).count();
                 graphData.put(Timestamp.valueOf(from), count);
-                from.plusDays(1);
+                from = from.plusDays(1);
             }
+        }
         return statisticResponseBuild(graphData, postCommentsByHour, totalPostCommentsBetweenDates.size(), postCommentsRepository.count());
+    }
+
+    public StatisticResponse getLikeStatistic(StatisticRequest request) {
+        LocalDateTime from = LocalDateTime.parse(request.getDateFromGraph().substring(0, request.getDateFromGraph().indexOf(" ")));
+        LocalDateTime to = LocalDateTime.parse(request.getDateToGraph().substring(0, request.getDateToGraph().indexOf(" ")));
+        List<PostLike> totalLikeBetweenDates = postLikesRepository.findAllByTimeBetweenDates(from, to);
+        Map<Timestamp, Long> graphData = new TreeMap<>();
+        Map<Integer, Double> likesByHour = new HashMap<>();
+
+        List<PostLike> likesForDiagram = request.getDiagramPeriod().equals("allTime") ? postLikesRepository.findAll() :
+                postLikesRepository.findAllByTimeBetweenDates(
+                        LocalDateTime.parse(request.getDateFromDiagram().substring(0, request.getDateFromDiagram().indexOf(" "))),
+                        LocalDateTime.parse(request.getDateToDiagram().substring(0, request.getDateToDiagram().indexOf(" ")))
+                );
+
+        for (int hour = 0; hour < 24; hour++){
+            int finalHour = hour;
+            long count = likesForDiagram.stream().filter(like -> like.getTime().getHour() == finalHour).count();
+            likesByHour.put(hour, (Math.floor(((double) count/likesForDiagram.size() * 100) * 1e2 / 1e2)));
+        }
+
+        if(request.getGraphPeriod().equals("years")){
+            while (from.getYear() <= to.getYear()){
+                int year = from.getYear();
+                long count = totalLikeBetweenDates.stream().filter(like -> like.getTime().getYear() == year).count();
+                graphData.put(Timestamp.valueOf(from), count);
+                from = from.plusYears(1L);
+            }
+        } else if(request.getGraphPeriod().equals("months")){
+            while (from.isBefore(to)){
+                int month = from.getMonthValue();
+                long count = totalLikeBetweenDates.stream().filter(like -> like.getTime().getMonthValue() == month).count();
+                graphData.put(Timestamp.valueOf(from), count);
+                from = from.plusMonths(1L);
+            }
+        } else {
+            while (from.isBefore(to)){
+                int day = from.getDayOfMonth();
+                long count = totalLikeBetweenDates.stream().filter(like -> like.getTime().getDayOfMonth() == day).count();
+                graphData.put(Timestamp.valueOf(from), count);
+                from = from.plusDays(1L);
+            }
+        }
+        return statisticResponseBuild(graphData, likesByHour, totalLikeBetweenDates.size(), postLikesRepository.count());
     }
 
 
@@ -183,7 +225,7 @@ public class AdminService {
                 ageDistribution.put(">60", ageDistribution.get(">60") + 1);
             }
         });
-        ageDistribution.forEach((s, aDouble) -> ageDistribution.put(s, (Math.floor(((double) aDouble/totalPersons.size() * 100) * 1e2) / 1e2)));
+        ageDistribution.forEach((s, aDouble) -> ageDistribution.put(s, (Math.floor((aDouble/totalPersons.size() * 100) * 1e2) / 1e2)));
         return ageDistribution;
     }
 

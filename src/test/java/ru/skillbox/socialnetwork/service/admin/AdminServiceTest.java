@@ -14,7 +14,11 @@ import ru.skillbox.socialnetwork.data.dto.admin.StatisticRequest;
 import ru.skillbox.socialnetwork.data.dto.admin.StatisticResponse;
 import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.entity.Post;
+import ru.skillbox.socialnetwork.data.entity.PostComment;
+import ru.skillbox.socialnetwork.data.entity.PostLike;
 import ru.skillbox.socialnetwork.data.repository.PersonRepo;
+import ru.skillbox.socialnetwork.data.repository.PostCommentsRepository;
+import ru.skillbox.socialnetwork.data.repository.PostLikesRepository;
 import ru.skillbox.socialnetwork.data.repository.PostRepository;
 
 import java.time.LocalDateTime;
@@ -33,11 +37,19 @@ class AdminServiceTest {
     private PostRepository postRepository;
     @MockBean
     private PersonRepo personRepository;
+    @MockBean
+    private PostCommentsRepository postCommentsRepository;
+    @MockBean
+    private PostLikesRepository postLikesRepository;
 
     private static Post postFirst;
     private static Post postSecond;
     private static Person personFirst;
     private static Person personSecond;
+    private static PostComment postCommentFirst;
+    private static PostComment postCommentSecond;
+    private static PostLike postLikeFirst;
+    private static PostLike postLikeSecond;
 
 
     @BeforeAll
@@ -57,6 +69,28 @@ class AdminServiceTest {
 
         postSecond = new Post();
         postSecond.setTime(LocalDateTime.of(2011, 2, 2, 2, 0));
+
+        postCommentFirst = new PostComment();
+        postCommentFirst.setPost(postFirst);
+        postCommentFirst.setAuthor(personFirst);
+        postCommentFirst.setTime(LocalDateTime.of(2021, 1, 1, 1, 0));
+        postCommentFirst.setId(1L);
+
+        postCommentSecond = new PostComment();
+        postCommentFirst.setPost(postSecond);
+        postCommentSecond.setAuthor(personSecond);
+        postCommentSecond.setTime(LocalDateTime.of(2011, 2, 2, 2, 0));
+        postCommentSecond.setId(1L);
+
+        postLikeFirst = new PostLike();
+        postLikeFirst.setPost(postFirst);
+        postLikeFirst.setPerson(personFirst);
+        postLikeFirst.setTime(LocalDateTime.of(2021, 1, 1, 1, 0));
+
+        postLikeSecond = new PostLike();
+        postLikeSecond.setPost(postSecond);
+        postLikeSecond.setPerson(personSecond);
+        postLikeSecond.setTime(LocalDateTime.of(2011, 2, 2, 2, 0));
     }
 
     @Test
@@ -191,5 +225,97 @@ class AdminServiceTest {
 //        assertEquals(2, response.getSexDistribution().size());
 //        assertEquals(50, response.getSexDistribution().get("мужчины"));
 //        assertEquals(50, response.getSexDistribution().get("женщины"));
+    }
+
+    @Test
+    void getPostCommentStatistic_With_graphPeriod_years(){
+        Mockito.when(postCommentsRepository.findAllByTimeBetweenDates(Mockito.any(), Mockito.any())).thenReturn(List.of(postCommentFirst, postCommentSecond));
+        Mockito.when(postCommentsRepository.findAll()).thenReturn(List.of(postCommentFirst, postCommentSecond));
+        Mockito.when(postCommentsRepository.count()).thenReturn(2L);
+        StatisticRequest request = StatisticRequest.builder()
+                .dateFromGraph("2011-01-03T02:00:00 04:00")
+                .dateToGraph("2021-01-03T01:00:19 04:00")
+                .graphPeriod("years")
+                .dateFromDiagram("2011-01-03T02:00:00 04:00")
+                .dateToDiagram("2021-01-03T01:00:19 04:00")
+                .diagramPeriod("allTime")
+                .build();
+
+        StatisticResponse response = adminService.getCommentStatistic(request);
+        assertEquals(2, response.getTotalDataCount());
+        assertEquals(2, response.getFoundDataCount());
+        assertEquals(11, response.getGraphData().size());
+        assertEquals(24, response.getDataByHour().size());
+        assertEquals(50.0, response.getDataByHour().get(1));
+        assertEquals(50.0, response.getDataByHour().get(2));
+    }
+
+    @Test
+    void getPostCommentStatistic_With_graphPeriod_months(){
+        Mockito.when(postCommentsRepository.findAllByTimeBetweenDates(Mockito.any(), Mockito.any())).thenReturn(List.of(postCommentFirst));
+        Mockito.when(postCommentsRepository.count()).thenReturn(2L);
+        Mockito.when(postCommentsRepository.findAll()).thenReturn(List.of(postCommentFirst, postCommentSecond));
+        StatisticRequest request = StatisticRequest.builder()
+                .dateFromGraph("2020-01-03T02:00:00 04:00")
+                .dateToGraph("2021-01-03T01:00:19 04:00")
+                .graphPeriod("months")
+                .dateFromDiagram("2011-01-03T02:00:00 04:00")
+                .dateToDiagram("2021-01-03T01:00:19 04:00")
+                .diagramPeriod("allTime")
+                .build();
+
+        StatisticResponse response = adminService.getCommentStatistic(request);
+        assertEquals(2, response.getTotalDataCount());
+        assertEquals(1, response.getFoundDataCount());
+        assertEquals(12, response.getGraphData().size());
+        assertEquals(24, response.getDataByHour().size());
+        assertEquals(50.0, response.getDataByHour().get(1));
+        assertEquals(50.0, response.getDataByHour().get(2));
+    }
+
+    @Test
+    void getPostCommentStatistic_With_graphPeriod_days(){
+        Mockito.when(postCommentsRepository.findAllByTimeBetweenDates(Mockito.any(), Mockito.any())).thenReturn(List.of(postCommentFirst));
+        Mockito.when(postCommentsRepository.count()).thenReturn(2L);
+        Mockito.when(postCommentsRepository.findAll()).thenReturn(List.of(postCommentFirst, postCommentSecond));
+        StatisticRequest request = StatisticRequest.builder()
+                .dateFromGraph("2021-01-01T00:00:00 04:00")
+                .dateToGraph("2021-01-03T01:00:19 04:00")
+                .graphPeriod("days")
+                .dateFromDiagram("2021-01-01T02:00:00 04:00")
+                .dateToDiagram("2021-01-03T01:00:19 04:00")
+                .diagramPeriod("allTime")
+                .build();
+
+        StatisticResponse response = adminService.getCommentStatistic(request);
+        assertEquals(2, response.getTotalDataCount());
+        assertEquals(1, response.getFoundDataCount());
+        assertEquals(3, response.getGraphData().size());
+        assertEquals(24, response.getDataByHour().size());
+        assertEquals(50.0, response.getDataByHour().get(1));
+        assertEquals(50.0, response.getDataByHour().get(2));
+    }
+
+    @Test
+    void getPostLikesStatistic_With_graphPeriod_years(){
+        Mockito.when(postLikesRepository.findAllByTimeBetweenDates(Mockito.any(), Mockito.any())).thenReturn(List.of(postLikeFirst, postLikeSecond));
+        Mockito.when(postLikesRepository.findAll()).thenReturn(List.of(postLikeFirst, postLikeSecond));
+        Mockito.when(postLikesRepository.count()).thenReturn(2L);
+        StatisticRequest request = StatisticRequest.builder()
+                .dateFromGraph("2011-01-03T02:00:00 04:00")
+                .dateToGraph("2021-01-03T01:00:19 04:00")
+                .graphPeriod("years")
+                .dateFromDiagram("2011-01-03T02:00:00 04:00")
+                .dateToDiagram("2021-01-03T01:00:19 04:00")
+                .diagramPeriod("allTime")
+                .build();
+
+        StatisticResponse response = adminService.getLikeStatistic(request);
+        assertEquals(2, response.getTotalDataCount());
+        assertEquals(2, response.getFoundDataCount());
+        assertEquals(11, response.getGraphData().size());
+        assertEquals(24, response.getDataByHour().size());
+        assertEquals(50.0, response.getDataByHour().get(1));
+        assertEquals(50.0, response.getDataByHour().get(2));
     }
 }

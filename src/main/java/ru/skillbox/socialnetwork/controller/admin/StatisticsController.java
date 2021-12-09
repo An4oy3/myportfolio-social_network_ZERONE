@@ -41,10 +41,17 @@ public class StatisticsController {
         return adminService.getPersonStatistic(request);
     }
 
-    @GetMapping("/api/v1/admin/comment")
+    @GetMapping("/api/v1/admin/stats/comment")
     @ApiOperation(value = "Получить статистику комментариев")
     @CrossOrigin(allowCredentials = "true", origins = "http://127.0.0.1:8080")
     public StatisticResponse getCommentStatistic(@RequestBody StatisticRequest request){
         return adminService.getCommentStatistic(request);
+    }
+
+    @GetMapping("/api/v1/admin/stats/likes")
+    @ApiOperation(value = "Получить статистику лайков")
+    @CrossOrigin(allowCredentials = "true", origins = "http://127.0.0.1:8080")
+    public StatisticResponse getLikesStatistic(@RequestBody StatisticRequest request){
+        return adminService.getLikeStatistic(request);
     }
 }
