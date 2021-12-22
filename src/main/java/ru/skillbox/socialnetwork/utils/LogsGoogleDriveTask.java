@@ -43,10 +43,10 @@ public class LogsGoogleDriveTask {
     private static final String logerrorFolderId = "1NO6U88qx2w6qoh2xh_Jyh2uEGShP58lO";
 
     //every day on 4:00
-    //@Scheduled(cron = "0 0 4 * * *")
+    @Scheduled(cron = "0 0 4 * * *")
 
     // One hour
-    @Scheduled(fixedRate = 1000 * 60 * 60)
+    //@Scheduled(fixedRate = 1000 * 60 * 60)
 
     public void copyLogsToGoogleDrive() {
         if (!System.getProperty("os.name").equals(VALID_SYSTEM_NAME)) {
@@ -66,12 +66,9 @@ public class LogsGoogleDriveTask {
             File[] files = folder.listFiles();
             if (files == null) {
                 log.info("No files in backup folder.");
-                System.out.println("No files in backup folder.");
             } else {
                 for (File file : files) {
-                    System.out.println(file.getName());
                     if (file.getName().contains(maskForFileCandidateToCopy)) {
-                        System.out.println("Load logs to drive " + file.getName());
                         log.info("Load logs to drive " + file.getName() + " success: " +
                                 loadFileToGoogleDrive(file.getAbsolutePath(), file.getName(), remoteFolderId));
                     }
