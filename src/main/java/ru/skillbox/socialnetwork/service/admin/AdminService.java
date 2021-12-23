@@ -262,7 +262,7 @@ public class AdminService {
                 .timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
                 .totalDataCount(totalDataCount)
                 .foundDataCount(foundDataCount)
-                .GraphData(graphData)
+                .graphData(graphData)
                 .dataByHour(dataByHour)
                 .build();
     }
