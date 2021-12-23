@@ -17,6 +17,6 @@ public class StatisticResponse {
     private long timestamp;
     private long totalDataCount;
     private long foundDataCount;
-    private Map<Timestamp, Long> GraphData;
+    private Map<Timestamp, Long> graphData;
     private Map<Integer, Double> dataByHour;
 }
