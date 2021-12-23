@@ -9,8 +9,8 @@ import java.sql.Timestamp;
 import java.util.Map;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class StatisticResponse {
     private String error;
