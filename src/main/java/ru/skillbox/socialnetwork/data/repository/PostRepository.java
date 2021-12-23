@@ -10,10 +10,9 @@ import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.entity.Post;
 import ru.skillbox.socialnetwork.data.entity.Tag;
 
-import java.util.List;
-import java.util.Optional;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository

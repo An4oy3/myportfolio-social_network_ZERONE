@@ -49,7 +49,7 @@ public class AdminService {
         for (int hour = 0; hour < 24; hour++){
             int finalHour = hour;
             long count = postsForDiagram.stream().filter(post -> post.getTime().getHour() == finalHour).count();
-            postsByHour.put(hour, (Math.floor(((double) count/postsForDiagram.size() * 100) * 1e2) / 1e2));
+            postsByHour.put(hour, Math.floor(((double) count/postsForDiagram.size() * 100) * 1e2) / 1e2);
         }
 
         if(request.getGraphPeriod().equals("years")){
@@ -127,7 +127,7 @@ public class AdminService {
         for (int hour = 0; hour < 24; hour++){
             int finalHour = hour;
             long count = postCommentsForDiagram.stream().filter(postComment -> postComment.getTime().getHour() == finalHour).count();
-            postCommentsByHour.put(hour, (Math.floor(((double) count/postCommentsForDiagram.size() * 100) * 1e2 / 1e2)));
+            postCommentsByHour.put(hour, Math.floor(((double) count/postCommentsForDiagram.size() * 100) * 1e2 / 1e2));
         }
 
         if(request.getGraphPeriod().equals("years")){
@@ -171,7 +171,7 @@ public class AdminService {
         for (int hour = 0; hour < 24; hour++){
             int finalHour = hour;
             long count = likesForDiagram.stream().filter(like -> like.getTime().getHour() == finalHour).count();
-            likesByHour.put(hour, (Math.floor(((double) count/likesForDiagram.size() * 100) * 1e2 / 1e2)));
+            likesByHour.put(hour, Math.floor(((double) count/likesForDiagram.size() * 100) * 1e2 / 1e2));
         }
 
         if(request.getGraphPeriod().equals("years")){
@@ -202,8 +202,8 @@ public class AdminService {
 
     private Map<String, Double> sexDistributionMapBuild(List<Person> totalPersonsBetweenDates) {
         Map<String, Double> sexDistribution = new HashMap<>();
-        sexDistribution.put("Женщины", (Math.floor(((double) totalPersonsBetweenDates.stream().filter(p -> p.getGender().equals("Female")).count() / totalPersonsBetweenDates.size() * 100)  * 1e2 / 1e2)));
-        sexDistribution.put("Мужчины", (Math.floor(((double) totalPersonsBetweenDates.stream().filter(p -> p.getGender().equals("Male")).count() / totalPersonsBetweenDates.size() * 100)  * 1e2 / 1e2)));
+        sexDistribution.put("Женщины", Math.floor(((double) totalPersonsBetweenDates.stream().filter(p -> p.getGender().equals("Female")).count() / totalPersonsBetweenDates.size() * 100)  * 1e2 / 1e2));
+        sexDistribution.put("Мужчины", Math.floor(((double) totalPersonsBetweenDates.stream().filter(p -> p.getGender().equals("Male")).count() / totalPersonsBetweenDates.size() * 100)  * 1e2 / 1e2));
         return sexDistribution;
     }
 
@@ -233,7 +233,7 @@ public class AdminService {
                 ageDistribution.put(">60", ageDistribution.get(">60") + 1);
             }
         });
-        ageDistribution.forEach((s, aDouble) -> ageDistribution.put(s, (Math.floor((aDouble/totalPersons.size() * 100) * 1e2) / 1e2)));
+        ageDistribution.forEach((s, aDouble) -> ageDistribution.put(s, Math.floor((aDouble/totalPersons.size() * 100) * 1e2) / 1e2));
         return ageDistribution;
     }
 
