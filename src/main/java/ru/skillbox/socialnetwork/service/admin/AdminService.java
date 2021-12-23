@@ -84,7 +84,7 @@ public class AdminService {
         List<Person> totalPersonsBetweenDates = personRepository.findAllByRegTimeBetweenDates(from, to);
         Map<Timestamp, Long> graphData = new TreeMap<>();
         Map<String, Double> ageDistribution = ageDistributionMapBuild(totalPersonsBetweenDates);
-        Map<String, Integer> sexDistribution = new HashMap<>();
+        Map<String, Double> sexDistribution = sexDistributionMapBuild(totalPersonsBetweenDates);
 
         if(request.getGraphPeriod().equals("years")){
             while (from.getYear() <= to.getYear()){
@@ -200,6 +200,14 @@ public class AdminService {
     }
 
 
+    private Map<String, Double> sexDistributionMapBuild(List<Person> totalPersonsBetweenDates) {
+        Map<String, Double> sexDistribution = new HashMap<>();
+        sexDistribution.put("Женщины", (Math.floor(((double) totalPersonsBetweenDates.stream().filter(p -> p.getGender().equals("Female")).count() / totalPersonsBetweenDates.size() * 100)  * 1e2 / 1e2)));
+        sexDistribution.put("Мужчины", (Math.floor(((double) totalPersonsBetweenDates.stream().filter(p -> p.getGender().equals("Male")).count() / totalPersonsBetweenDates.size() * 100)  * 1e2 / 1e2)));
+        return sexDistribution;
+    }
+
+
 
     private Map<String, Double> ageDistributionMapBuild(List<Person> totalPersons){
         Map<String, Double> ageDistribution = new HashMap<>();
@@ -231,7 +239,7 @@ public class AdminService {
 
     private PersonStatisticResponse personStatisticResponseBuild(Map<Timestamp, Long> persons,
                                                                  Map<String, Double> ageDistribution,
-                                                                 Map<String, Integer> sexDistribution,
+                                                                 Map<String, Double> sexDistribution,
                                                                  int foundPersonCount){
         return PersonStatisticResponse.builder().error("string")
                 .timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))

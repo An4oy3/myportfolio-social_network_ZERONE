@@ -19,5 +19,5 @@ public class PersonStatisticResponse {
     private long foundPersonCount;
     private Map<Timestamp, Long> personGraphData;
     private Map<String, Double> ageDistribution;
-    private Map<String, Integer> sexDistribution;
+    private Map<String, Double> sexDistribution;
 }
