@@ -1,5 +1,6 @@
 package ru.skillbox.socialnetwork.service;
 
+import ru.skillbox.socialnetwork.data.dto.dialogs.DialogRequest;
 import ru.skillbox.socialnetwork.data.dto.dialogs.DialogResponse;
 
 import java.security.Principal;
@@ -7,7 +8,7 @@ import java.security.Principal;
 
 public interface DialogService {
 
-    DialogResponse sendMessage(Principal principal, Long dialogId,String message);
+    DialogResponse sendMessage(DialogRequest request, Principal principal);
 
     DialogResponse getAllMessages(Long dialogId);
 
@@ -16,4 +17,8 @@ public interface DialogService {
     DialogResponse dialogDelete(Long dialogId, Principal principal);
 
     DialogResponse messageDelete(Long dialogId, Long messageId, Principal principal);
+
+    DialogResponse getDialog(Long dialogId);
+
+    DialogResponse getAllDialogs(Principal principal);
 }
