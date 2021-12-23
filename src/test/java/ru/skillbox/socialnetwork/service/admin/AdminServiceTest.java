@@ -56,11 +56,13 @@ class AdminServiceTest {
     static void init(){
         personFirst = new Person();
         personFirst.setId(1L);
+        personFirst.setGender("Female");
         personFirst.setBirthTime(LocalDateTime.of(1993, 12, 11, 0, 0));
         personFirst.setRegTime(LocalDateTime.of(2021, 1, 1, 1, 0));
 
         personSecond = new Person();
         personSecond.setId(2L);
+        personSecond.setGender("Male");
         personSecond.setBirthTime(LocalDateTime.of(2000, 1, 1, 0, 0));
         personSecond.setRegTime(LocalDateTime.of(2011, 2, 2, 2, 0));
 
@@ -179,9 +181,9 @@ class AdminServiceTest {
         assertEquals(6, response.getAgeDistribution().size());
         assertEquals(50.0, response.getAgeDistribution().get("24-30"));
         assertEquals(50.0, response.getAgeDistribution().get("19-23"));
-//        assertEquals(2, response.getSexDistribution().size());
-//        assertEquals(50, response.getSexDistribution().get("мужчины"));
-//        assertEquals(50, response.getSexDistribution().get("женщины"));
+        assertEquals(2, response.getSexDistribution().size());
+        assertEquals(50.0, response.getSexDistribution().get("Мужчины"));
+        assertEquals(50.0, response.getSexDistribution().get("Женщины"));
     }
     @Test
     void getPersonStatistic_With_graphPeriod_months(){
@@ -200,9 +202,9 @@ class AdminServiceTest {
         assertEquals(6, response.getAgeDistribution().size());
         assertEquals(100.0, response.getAgeDistribution().get("24-30"));
         assertEquals(0.0, response.getAgeDistribution().get("19-23"));
-//        assertEquals(2, response.getSexDistribution().size());
-//        assertEquals(50, response.getSexDistribution().get("мужчины"));
-//        assertEquals(50, response.getSexDistribution().get("женщины"));
+        assertEquals(2, response.getSexDistribution().size());
+        assertEquals(0.0, response.getSexDistribution().get("Мужчины"));
+        assertEquals(100.0, response.getSexDistribution().get("Женщины"));
     }
 
     @Test
