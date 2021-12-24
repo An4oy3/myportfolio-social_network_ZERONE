@@ -14,6 +14,8 @@ import ru.skillbox.socialnetwork.data.entity.Country;
 import ru.skillbox.socialnetwork.data.entity.MessagePermission;
 import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.entity.Town;
+import ru.skillbox.socialnetwork.data.repository.CountryRepository;
+import ru.skillbox.socialnetwork.data.repository.FileRepository;
 import ru.skillbox.socialnetwork.data.repository.PersonRepo;
 import ru.skillbox.socialnetwork.data.repository.TownRepository;
 import ru.skillbox.socialnetwork.exception.PersonNotAuthorized;
@@ -41,7 +43,13 @@ class PersonControllerTest {
 
     @MockBean
     private TownRepository townRepository;
-    
+
+    @MockBean
+    private CountryRepository countryRepository;
+
+    @MockBean
+    private FileRepository fileRepository;
+
     @Autowired
     private PersonController personController;
     @Mock
