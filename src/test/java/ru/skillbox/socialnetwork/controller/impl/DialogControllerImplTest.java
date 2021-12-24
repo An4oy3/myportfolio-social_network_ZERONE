@@ -5,21 +5,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
 import ru.skillbox.socialnetwork.data.dto.dialogs.DialogRequest;
 import ru.skillbox.socialnetwork.data.dto.dialogs.DialogResponse;
 import ru.skillbox.socialnetwork.data.entity.Dialog;
 import ru.skillbox.socialnetwork.data.entity.Message;
 import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.entity.ReadStatus;
-import ru.skillbox.socialnetwork.data.repository.DialogRepository;
-import ru.skillbox.socialnetwork.data.repository.MessageRepository;
-import ru.skillbox.socialnetwork.data.repository.PersonRepo;
 import ru.skillbox.socialnetwork.exception.DialogNotFoundException;
 import ru.skillbox.socialnetwork.exception.MessageNotFoundException;
 import ru.skillbox.socialnetwork.exception.PersonNotAuthorized;
@@ -27,8 +22,8 @@ import ru.skillbox.socialnetwork.service.impl.DialogServiceImpl;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -37,30 +32,21 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@AutoConfigureMockMvc
 class DialogControllerImplTest {
 
 
     private static Person personOne;
     private static Person personTwo;
     private static Dialog dialog;
+    private static List<Dialog> testDialogs;
     private static DialogRequest dialogRequest;
 
-
-    @Autowired
-    private MockMvc mockMvc;
     @Autowired
     private DialogControllerImpl dialogController;
     @MockBean
     private DialogServiceImpl dialogService;
     @MockBean
-    private PersonRepo personRepo;
-    @MockBean
     private Principal principal;
-    @MockBean
-    private DialogRepository dialogRepository;
-    @MockBean
-    private MessageRepository messageRepository;
 
     @BeforeAll
     static void initPersonOne() {
@@ -94,6 +80,8 @@ class DialogControllerImplTest {
                 .text("Hi")
                 .build();
         dialog.setMessages(List.of(messageOne));
+        testDialogs = new ArrayList<>();
+        testDialogs.add(dialog);
     }
     @BeforeAll
     static void initDialogRequest() {
@@ -105,8 +93,6 @@ class DialogControllerImplTest {
     @Test
     @DisplayName("Send message")
     void sendMessage() {
-        when(dialogRepository.findById(any())).thenReturn(Optional.ofNullable(dialog));
-        when(personRepo.findByEmail(any())).thenReturn(Optional.ofNullable(personOne));
         DialogResponse dialogResponseSend = DialogResponse.builder()
                 .error("string")
                 .timestamp(System.currentTimeMillis())
@@ -129,7 +115,6 @@ class DialogControllerImplTest {
     @Test
     @DisplayName("Get list messages")
     void getAllMessages() {
-        when(dialogRepository.findById(any())).thenReturn(Optional.ofNullable(dialog));
         DialogResponse dialogResponseGetAll =  DialogResponse.builder()
                 .error("string")
                 .timestamp(System.currentTimeMillis())
@@ -153,8 +138,6 @@ class DialogControllerImplTest {
     @Test
     @DisplayName("Dialog create")
     void dialogCreate() {
-        when(personRepo.findById(any())).thenReturn(Optional.ofNullable(personTwo));
-        when(principal.getName()).thenReturn(personOne.getEmail());
         DialogResponse dialogResponseCreate =  DialogResponse.builder()
                 .error("string")
                 .timestamp(System.currentTimeMillis())
@@ -172,9 +155,6 @@ class DialogControllerImplTest {
     @Test
     @DisplayName("Delete dialog")
     void dialogDelete() {
-        when(dialogRepository.findById(any())).thenReturn(Optional.ofNullable(dialog));
-        when(personRepo.findById(any())).thenReturn(Optional.ofNullable(personOne));
-        when(principal.getName()).thenReturn(personOne.getEmail());
         DialogResponse dialogResponseDelete =  DialogResponse.builder()
                 .error("string")
                 .timestamp(System.currentTimeMillis())
@@ -186,18 +166,11 @@ class DialogControllerImplTest {
 
         assertEquals(ResponseEntity.ok(dialogResponseDelete),dialogController.dialogDelete(1L,principal));
         verify(dialogService,times(1)).dialogDelete(1L,principal);
-
-
-
     }
 
     @Test
     @DisplayName("Delete message")
     void messageDelete() {
-        when(dialogRepository.findById(any())).thenReturn(Optional.ofNullable(dialog));
-        when(personRepo.findById(any())).thenReturn(Optional.ofNullable(personOne));
-        when(principal.getName()).thenReturn(personOne.getEmail());
-        when(messageRepository.findById(1L)).thenReturn(Optional.ofNullable(dialog.getMessages().get(0)));
         DialogResponse dialogResponseDelete = DialogResponse.builder()
                 .error("string")
                 .timestamp(System.currentTimeMillis())
@@ -210,6 +183,43 @@ class DialogControllerImplTest {
         assertEquals(ResponseEntity.ok(dialogResponseDelete),dialogController.messageDelete(1L,1L,principal));
         verify(dialogService,times(1)).messageDelete(1L,1L,principal);
     }
+    @Test
+    @DisplayName("Get all dialogs")
+    void getAllDialogs() {
+        DialogResponse dialogResponse = DialogResponse.builder()
+                .timestamp(System.currentTimeMillis())
+                .data(DialogResponse.Data.builder()
+                        .dialogs(testDialogs)
+                        .build())
+                .build();
+        when(dialogService.getAllDialogs(any())).thenReturn(dialogResponse);
+        assertEquals(ResponseEntity.ok(dialogResponse),dialogController.getAllDialogs(principal));
+    }
+    @Test
+    @DisplayName("Get dialog by Id")
+    void getDialog() {
+        DialogResponse dialogResponse = DialogResponse.builder()
+                .timestamp(System.currentTimeMillis())
+                .data(DialogResponse.Data.builder()
+                        .id(1L)
+                        .build())
+                .build();
+        when(dialogService.getDialog(1L)).thenReturn(dialogResponse);
+        assertEquals(ResponseEntity.ok(dialogResponse),dialogController.getDialog(1L));
+    }
+    @Test
+    @DisplayName("Get dialog unknown id")
+    public void getDialog_unknownId_throwsDialogNotFound() {
+        when(dialogService.getDialog(any())).thenThrow(DialogNotFoundException.class);
+        assertThrows(DialogNotFoundException.class, () -> dialogController.getDialog(any()));
+    }
+    @Test
+    @DisplayName("Get dialogs not authorized person")
+    public void getDialogs_notAuthorized_throwsPersonNotAuthorized() {
+        when(dialogService.getAllDialogs(any())).thenThrow(PersonNotAuthorized.class);
+        assertThrows(PersonNotAuthorized.class, () -> dialogController.getAllDialogs(any()));
+    }
+
 
     @Test
     @DisplayName("Set message  person unauthorized throws PersonNotAuthorized")

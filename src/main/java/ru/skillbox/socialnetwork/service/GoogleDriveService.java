@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class GoogleDriveService {
 
     private static final String APPLICATION_NAME = "test google drive on spring boot";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-    private static final String TOKENS_DIRECTORY_PATH = "javapro-socialnetwork-studygroup-17/src/main/resources";
+    private static final String TOKENS_DIRECTORY_PATH = "src/main/resources";
 
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
@@ -54,7 +55,7 @@ public class GoogleDriveService {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
-    public String uploadFile(FileContent content, String fileName) throws Exception {
+    public String uploadFile(FileContent content, String fileName, String parentsId) throws Exception {
 
         InputStream in = GoogleDriveService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         if (in == null) {
@@ -68,8 +69,14 @@ public class GoogleDriveService {
                 .setApplicationName(APPLICATION_NAME)
                 .build();
 
+        File file = new File();
+        file.setName(fileName);
+
+        List<String> parents = Arrays.asList(parentsId);
+        file.setParents(parents);
+
         File uploadedFile = service.files()
-                .create(new File().setName(fileName), content).setFields("id")
+                .create(file, content).setFields("id, parents")
                 .execute();
 
         return uploadedFile.getId();
