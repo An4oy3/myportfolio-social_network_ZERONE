@@ -4,6 +4,7 @@ services:
     build: ./builds/zPSnmXEe/0/javapro17/javapro-socialnetwork-studygroup-17/
     volumes: 
       - ./serverlogs:/logs
+      - ./backup:/backup
     container_name: backend
     ports:
       - "8086:8086"
