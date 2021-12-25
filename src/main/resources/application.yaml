@@ -39,9 +39,9 @@ management:
       percentiles-histogram:
         "[http.server.requests]": true
 backup:
-  localpath: backup
+  localpath: ../../backup
 logs:
-  localpath: logs
+  localpath: ../../logs
 
 
 
