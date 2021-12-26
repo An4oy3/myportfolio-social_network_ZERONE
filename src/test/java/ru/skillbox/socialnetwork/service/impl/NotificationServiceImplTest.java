@@ -67,7 +67,6 @@ class NotificationServiceImplTest {
         person = new Person();
         person.setId(1L);
         person.setEmail("Test@mail.com");
-        person.setNotificationSetting(notificationSettings);
 
         targetPerson = new Person();
         targetPerson.setId(2L);

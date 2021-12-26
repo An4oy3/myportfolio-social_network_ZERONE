@@ -68,7 +68,7 @@ public class Person {
     @Column(name = "is_deleted")
     private boolean isDeleted;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private NotificationSettings notificationSetting;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -8,23 +8,27 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.data.dto.NotificationResponse;
 import ru.skillbox.socialnetwork.data.entity.Notification;
+import ru.skillbox.socialnetwork.data.entity.NotificationSettings;
 import ru.skillbox.socialnetwork.data.entity.NotificationType;
 import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.repository.NotificationRepository;
+import ru.skillbox.socialnetwork.data.repository.NotificationSettingsRepository;
 import ru.skillbox.socialnetwork.data.repository.PersonRepo;
 import ru.skillbox.socialnetwork.service.NotificationService;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final NotificationSettingsRepository notificationSettingsRepository;
     private final PersonRepo personRepository;
 
     @Override
@@ -32,7 +36,8 @@ public class NotificationServiceImpl implements NotificationService {
         Pageable pageable = PageRequest.of(Integer.parseInt(offset), Integer.parseInt(itemPerPage));
 
         Person person = personRepository.findByEmail(principal.getName()).orElseThrow(()-> new UsernameNotFoundException("User not found"));
-        Set<NotificationType> approvedNotifications = person.getNotificationSetting().getApprovedNotification();
+        NotificationSettings notificationSetting = notificationSettingsRepository.findByPerson(person);
+        Set<NotificationType> approvedNotifications = notificationSetting.getApprovedNotification();
         Page<Notification> notifications = notificationRepository.findAllByPerson(
                 person, approvedNotifications, pageable);
 
