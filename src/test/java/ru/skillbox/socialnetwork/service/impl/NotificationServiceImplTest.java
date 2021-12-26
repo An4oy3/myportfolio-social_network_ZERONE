@@ -16,6 +16,7 @@ import ru.skillbox.socialnetwork.data.entity.NotificationSettings;
 import ru.skillbox.socialnetwork.data.entity.NotificationType;
 import ru.skillbox.socialnetwork.data.entity.Person;
 import ru.skillbox.socialnetwork.data.repository.NotificationRepository;
+import ru.skillbox.socialnetwork.data.repository.NotificationSettingsRepository;
 import ru.skillbox.socialnetwork.data.repository.PersonRepo;
 
 import java.security.Principal;
@@ -40,6 +41,8 @@ class NotificationServiceImplTest {
     private PersonRepo personRepository;
     @MockBean
     private NotificationRepository notificationRepository;
+    @MockBean
+    private NotificationSettingsRepository notificationSettingsRepository;
     @MockBean
     private Principal principal;
 
@@ -86,6 +89,7 @@ class NotificationServiceImplTest {
         Mockito.when(notificationRepository.findAllByPerson(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new PageImpl<>(List.of(newPostNotification, newPostCommentNotification, newCommentOnCommentNotification, newFriendRequestNotification)));
         Mockito.when(personRepository.getById(Mockito.any())).thenReturn(targetPerson);
         Mockito.when(principal.getName()).thenReturn(person.getEmail());
+        Mockito.when(notificationSettingsRepository.findByPerson(Mockito.any())).thenReturn(notificationSettings);
         NotificationResponse response = notificationService.getNotifications("0", "10", principal);
 
         assertEquals(4L, response.getTotal());
